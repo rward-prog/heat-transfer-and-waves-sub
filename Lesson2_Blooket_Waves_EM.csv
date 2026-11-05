@@ -1,0 +1,28 @@
+Blooket Import Template,,,,,,,
+Question #,Question Text,Answer 1,Answer 2,Answer 3 (Optional),Answer 4 (Optional),Time Limit (sec) (Max: 300 seconds),Correct Answer(s) (Only include Answer #)
+1,Wavelength is the distance from...,The top to the bottom of the wave,One crest to the next crest,The crest to the trough,Start to finish of one second,20,2
+2,Frequency is...,How tall a wave is,How many waves pass a point each second,The distance from crest to crest,How fast light travels,20,2
+3,The unit for frequency is...,Nanometers (nm),Joules (J),Hertz (Hz),Meters (m),20,3
+4,Amplitude tells you...,How tall the wave is,How many waves pass per second,The color of the wave,The distance between crests,20,1
+5,About how fast does light travel in empty space?,"3,000 kilometers per hour",It depends on the color,300 kilometers per second,"300,000 kilometers per second",20,4
+6,Which EM wave travels fastest in empty space?,Radio waves,Visible light,They all travel at the same speed,Gamma rays,20,3
+7,"If two waves travel at the same speed, the one with the SHORTER wavelength has...",A lower frequency,The same frequency,A higher frequency,No frequency,30,3
+8,Which wave has more energy per wave?,The one that is taller,They always have the same energy,The one with the longer wavelength,The one with the shorter wavelength,20,4
+9,Which kind of radiation has the LONGEST wavelength?,Visible light,X-rays,Gamma rays,Radio waves,20,4
+10,Which kind of radiation has the MOST energy per wave?,Gamma rays,Infrared,Microwaves,Radio waves,20,1
+11,What is the order from longest wavelength to shortest?,"Gamma, X-ray, UV, visible, infrared, microwave, radio","Radio, microwave, infrared, visible, UV, X-ray, gamma","Visible, radio, X-ray, infrared, gamma, UV, microwave","Radio, X-ray, infrared, visible, UV, microwave, gamma",30,2
+12,Microwave ovens heat food by making which molecules vibrate faster?,Metal,Water,Light,Salt,30,2
+13,Thermal (heat) cameras detect which kind of radiation?,Radio waves,X-rays,Ultraviolet,Infrared,20,4
+14,Which kind of radiation causes sunburn?,Infrared,Ultraviolet (UV),Radio waves,Microwaves,20,2
+15,A dentist uses which kind of radiation to look at your teeth?,X-rays,Radio waves,Visible light,Microwaves,30,1
+16,Gamma rays are made by...,Microwave ovens,Radio towers,Nuclear reactions,Light bulbs,20,3
+17,Which kinds of radiation can damage DNA?,"UV, X-rays, and gamma rays",Only infrared,Only visible light,Radio waves and microwaves,20,1
+18,Why are the radio waves around you right now harmless?,They are not radiation,They are too fast to touch you,They cannot pass through air,They have low energy per wave,20,4
+19,Wi-Fi and cell phones use which kinds of radiation?,X-rays,Gamma rays,Microwaves and radio waves,Ultraviolet,20,3
+20,A nanometer (nm) is...,One thousandth of a meter,One meter,One billion meters,One billionth of a meter,20,4
+21,Visible light has wavelengths of about...,400 to 700 kilometers,4 to 7 meters,4 to 7 millimeters,400 to 700 nanometers,20,4
+22,Which color of visible light has the LONGEST wavelength?,Green,Red,Violet,Blue,20,2
+23,Which color of visible light has the SHORTEST wavelength?,Yellow,Green,Violet,Red,20,3
+24,"Compared to red light, blue light has...",A longer wavelength and higher frequency,A shorter wavelength and higher frequency,The same wavelength and frequency,A shorter wavelength and lower frequency,20,2
+25,Which color of light has the MOST energy per wave?,Violet,Green,Red,Orange,20,1
+26,White light is...,All the colors of visible light mixed together,Only yellow light,No color at all,Only the brightest colors,30,1
