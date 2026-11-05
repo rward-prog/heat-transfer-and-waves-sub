@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Murphy and the Thermal-O-Tron</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#14283b; --muted:#4d6275; --card:#ffffff; --line:#cfdce6;
+  --hot:#ff5a36; --cold:#2a9bd6; --sun:#ffc933; --ok:#14804a; --okbg:#e3f6ec; --bad:#b3261e; --badbg:#fdeceb;
+  --accent:#1c7ed6; --tint:#eaf5fb;
+  --head:"Fredoka","Trebuchet MS",ui-rounded,system-ui,sans-serif;
+  --body:"Nunito","Segoe UI",system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--tint);color:var(--ink);font-family:var(--body);font-size:18px;line-height:1.5;transition:background .4s}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+h1:focus,h2:focus{outline:none}
+
+/* top bar */
+.bar{position:sticky;top:0;z-index:5;background:#fff;border-bottom:2px solid var(--line);display:flex;align-items:center;gap:12px;padding:8px 14px}
+.brand{font-family:var(--head);font-weight:700;font-size:17px;white-space:nowrap}
+.meter{position:relative;flex:1;min-width:90px;height:16px;border-radius:99px;overflow:hidden;background:linear-gradient(90deg,var(--cold),var(--sun) 55%,var(--hot));border:2px solid var(--ink)}
+.meter .cover{position:absolute;top:0;right:0;bottom:0;background:#e6edf2;transition:width .6s}
+.count{font-family:var(--head);font-weight:600;font-size:15px;white-space:nowrap}
+.tbtn{border:2px solid var(--ink);background:#fff;border-radius:12px;padding:4px 12px;font-weight:800;font-size:15px}
+.tbtn:hover{background:var(--sun)}
+
+main{max-width:800px;margin:18px auto 60px;padding:0 14px}
+.page{background:var(--card);border:3px solid var(--ink);border-radius:22px;box-shadow:0 7px 0 var(--ink);overflow:hidden}
+.art{position:relative;aspect-ratio:16/10;background:#dbe7ef;border-bottom:3px solid var(--ink)}
+.art img{width:100%;height:100%;object-fit:cover;display:block}
+.ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:16px;background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 40%,#fff));color:#fff}
+.ph[hidden]{display:none}
+.ph .big{font-size:64px;line-height:1}
+.ph small{font-weight:800;opacity:.9}
+.body{padding:20px 24px 26px}
+.pgno{margin:0 0 2px;font-size:14px;font-weight:800;color:var(--muted)}
+h1,h2,h3{font-family:var(--head);line-height:1.15;margin:0 0 10px}
+h1{font-size:clamp(28px,6vw,42px);font-weight:700}
+h2{font-size:clamp(22px,4.5vw,28px);font-weight:600}
+.text p{margin:0 0 12px;max-width:62ch}
+.text b{color:var(--accent)}
+.actions{margin-top:18px;display:flex;flex-direction:column;gap:12px}
+.row{display:flex;flex-wrap:wrap;gap:10px}
+
+.btn{border:3px solid var(--ink);background:#fff;border-radius:14px;padding:10px 18px;font-weight:800;box-shadow:0 4px 0 var(--ink);transition:transform .08s,box-shadow .08s}
+.btn:hover{background:var(--sun)}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.btn.primary{background:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--ink)}
+.btn.ghost{box-shadow:none;border-color:var(--line);color:var(--muted);padding:6px 14px}
+.btn.ghost:hover{background:#fff;border-color:var(--ink);color:var(--ink)}
+
+.choice{display:flex;gap:12px;align-items:center;text-align:left;width:100%;border:3px solid var(--ink);background:#fff;border-radius:16px;padding:12px 16px;box-shadow:0 4px 0 var(--ink);font-weight:800;transition:transform .08s,box-shadow .08s}
+.choice:hover{background:color-mix(in srgb,var(--accent) 12%,#fff)}
+.choice:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.chip{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--head);font-weight:700}
+
+/* gate */
+.gate{border:3px dashed var(--accent);border-radius:18px;padding:16px 18px;background:color-mix(in srgb,var(--accent) 7%,#fff)}
+.picked{margin:0 0 6px;font-size:15px;color:var(--muted)}
+.q{margin-bottom:12px}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;width:100%;border:3px solid var(--ink);background:#fff;border-radius:14px;padding:10px 14px;font-weight:600}
+.opt:hover:not(:disabled){background:var(--sun)}
+.opt.wrong{border-color:var(--bad);background:var(--badbg);opacity:.8}
+.opt.right{border-color:var(--ok);background:var(--okbg)}
+.opt:disabled{cursor:default}
+.opt.shake{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.fb{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.why{border-radius:12px;padding:9px 13px;font-size:16.5px;font-weight:600}
+.why.bad{background:var(--badbg);border-left:6px solid var(--bad)}
+.why.good{background:var(--okbg);border-left:6px solid var(--ok)}
+.gate-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;align-items:center}
+
+/* ending */
+.ending{text-align:center}
+.stamp{display:inline-grid;place-items:center;width:132px;height:132px;border-radius:50%;border:6px double var(--accent);background:#fff;font-size:62px;margin:2px auto 10px;animation:stamp .6s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes stamp{from{transform:scale(2.4) rotate(-14deg);opacity:0}to{transform:none;opacity:1}}
+.kind{display:inline-block;border-radius:99px;padding:2px 12px;font-weight:800;font-size:14px;margin-bottom:6px}
+.kind.hero{background:var(--okbg);color:var(--ok)}
+.kind.fail{background:#fff2d6;color:#8a5a00}
+.newtag{font-weight:800;color:var(--ok);margin:0 0 6px}
+.recap{margin:14px auto 0;max-width:56ch;text-align:left;background:color-mix(in srgb,var(--accent) 10%,#fff);border-left:6px solid var(--accent);border-radius:12px;padding:10px 14px;font-weight:600}
+.ending .text p{margin-left:auto;margin-right:auto;text-align:left}
+.ending .row{justify-content:center}
+
+/* hub */
+.doors{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.door{display:flex;flex-direction:column;gap:2px;align-items:flex-start;text-align:left;border:3px solid var(--ink);border-radius:18px;padding:14px 16px;background:var(--c);color:#fff;box-shadow:0 5px 0 var(--ink);transition:transform .08s,box-shadow .08s}
+.door:hover{filter:brightness(1.08)}
+.door:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
+.door .de{font-size:40px;line-height:1.1}
+.door .dt{font-family:var(--head);font-weight:600;font-size:21px;line-height:1.1}
+.door .dn,.door .dc{font-size:15px;font-weight:800;opacity:.92}
+.door.gold{--c:#8a5a00}
+
+/* crews & wall */
+.crews{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.crew{border:3px solid var(--ink);border-radius:16px;padding:10px 14px;background:#fff}
+.crew h3{font-size:19px;margin-bottom:6px}
+.crew ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.crew li{background:var(--tint);border-radius:99px;padding:1px 10px;font-size:15px;font-weight:800}
+.wgroup{margin:0 0 18px}
+.wgroup h3{font-size:20px;margin-bottom:8px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.tile{border:3px solid var(--ink);border-radius:14px;padding:8px 10px;text-align:center;background:#fff;font-weight:800;font-size:15px;line-height:1.25}
+.tile .te{display:block;font-size:34px;line-height:1.2}
+.tile.locked{background:#e6edf2;color:var(--muted);border-style:dashed;border-color:var(--line)}
+.tile.hero{border-color:var(--ok)}
+.tile.fail{border-color:#c98a00}
+.tile small{display:block;font-weight:600;color:var(--muted)}
+
+@media (max-width:520px){
+  body{font-size:17px}
+  .brand{display:none}
+  .body{padding:16px 16px 22px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<noscript><p style="padding:20px">This adventure needs JavaScript turned on.</p></noscript>
+<header class="bar">
+  <span class="brand">Murphy &amp; the Thermal-O-Tron</span>
+  <div class="meter" id="meter" role="img" aria-label="Badges collected"><div class="cover" id="cover"></div></div>
+  <span class="count" id="count">0/20</span>
+  <button class="tbtn" id="btnDoors">Doors</button>
+  <button class="tbtn" id="btnWall">Badges</button>
+</header>
+<main id="app"></main>
+
+<script>
+/* ========================= DATA ========================= */
+const CREWS = [
+  {id:'lab',     name:'Lab Crew',      emoji:'🥽', names:['Michael','Raza','Aaran','Samuel','James','Giorgio']},
+  {id:'weather', name:'Weather Team',  emoji:'🌦️', names:['Dylan','Jasper','Elliott','Theodore','Taran','Pierce']},
+  {id:'camp',    name:'Campfire Crew', emoji:'🏕️', names:['Arthur','Alex','Thomas','Nicolas','Edward','Luca']},
+  {id:'arctic',  name:'Arctic Crew',   emoji:'🐧', names:['Maxwell','Frederick','Justice','Andrew','Nicholas','Martin']},
+  {id:'volcano', name:'Volcano Crew',  emoji:'🌋', names:['Leo','Ayan','Charles','Anthony','Harry','Cole']},
+  {id:'space',   name:'Space Crew',    emoji:'🧑‍🚀', names:['Lucas','Jairam','Marcus','Alfred','Zane','Graham']},
+  {id:'snack',   name:'Snack Crew',    emoji:'🍿', names:['Kailash','George','Douglass','Ellison','Wallace','Ethan']}
+];
+
+const WORLDS = [
+  {id:'camp',    n:1, name:'Campfire Night',  emoji:'🔥', color:'#c2410c', tint:'#fff0e4', start:'p05'},
+  {id:'lab',     n:2, name:"Mr. Ward's Lab", emoji:'🧪', color:'#6741d9', tint:'#f1ecff', start:'p13'},
+  {id:'arctic',  n:3, name:'The Arctic',      emoji:'❄️', color:'#1971c2', tint:'#e6f4ff', start:'p21'},
+  {id:'volcano', n:4, name:'The Volcano',     emoji:'🌋', color:'#c92a2a', tint:'#ffe9e6', start:'p29'},
+  {id:'space',   n:5, name:'Outer Space',     emoji:'🚀', color:'#3b3a9e', tint:'#e9e8ff', start:'p37'}
+];
+const W = Object.fromEntries(WORLDS.map(w=>[w.id,w]));
+
+/* Gate questions. FIRST option is always the correct one (shuffled at runtime). Each option = [text, feedback]. */
+const GATES = {
+/* ---------- Campfire ---------- */
+g01:{q:`Murphy pokes only the <b>tip</b> of a metal skewer into the fire. A minute later the handle is hot too. How did the heat get there?`,o:[
+ [`Hot particles in the tip bump their neighbors and pass energy down the metal (conduction).`,`Yes! In a solid, particles can't travel, but they jiggle and bump their neighbors, passing energy along. That's <b>conduction</b>.`],
+ [`Hot air rose up along the outside of the skewer and wrapped around the handle like a warm blanket.`,`Hot air does rise, but it can't climb through solid metal. Inside a solid, energy moves by particles bumping neighbors: conduction.`],
+ [`The metal makes its own heat when it touches fire.`,`Metal can't make energy. The flame's thermal energy gets passed along the skewer, particle to particle.`]]},
+g02:{q:`The cooler is stuffed with ice, but the ice still slowly melts. Why?`,o:[
+ [`Thermal energy flows from the warmer air and food into the ice, melting it.`,`Yes! Heat always flows from warmer things to cooler things. Cold isn't a thing that moves. Heat moves <i>in</i>.`],
+ [`Cold slowly leaks out of the ice, right through the cooler walls, and into the outside air.`,`There's no "cold" to leak out. Only thermal energy moves, and it moves from hot to cold. So the heat leaks <i>in</i>.`],
+ [`Ice melts on its own, with no energy needed.`,`Melting takes energy. Ice only melts when thermal energy flows into it from warmer things nearby.`]]},
+g03:{q:`Murphy sits 2 meters to the <b>side</b> of the fire. Hot air goes up, not sideways, yet his face feels warm. What reaches him?`,o:[
+ [`Radiation: the fire sends out infrared waves and light in every direction.`,`Yes! <b>Radiation</b> travels as waves in all directions. No touching and no moving air required.`],
+ [`Hot air from the fire spreads out sideways across the ground until it blows onto his face.`,`Hot air mostly goes <i>up</i>. The warmth you feel from the side is radiation: waves that travel straight through the air.`],
+ [`Cold air pushes the heat toward him.`,`Cold air can't push heat. Radiation carries the energy by itself, no pushing needed.`]]},
+g04:{q:`Murphy holds a marshmallow right <b>above</b> the flames. Why is the air up there so hot?`,o:[
+ [`Hot air is less dense, so it rises and carries thermal energy upward (convection).`,`Yes! Warmed air spreads out, gets less dense, and floats up through cooler air. That rising current is <b>convection</b>.`],
+ [`Heat is lighter than air, so the heat itself floats up above the flames like a balloon.`,`Heat isn't a thing with weight. Hot <i>air</i> rises because its particles are spread out, making it less dense than cool air.`],
+ [`Cold air above the fire pulls the hot air up.`,`Cold never pulls. Cooler, denser air sinks and pushes the warm air up. That circle is a convection current.`]]},
+g05:{q:`Murphy puts the ice on <b>top</b> of the food. Why does that cool everything in the cooler?`,o:[
+ [`Air near the ice cools, gets dense, and sinks onto the food below (convection).`,`Yes! Cold air sinks, warmer air rises to take its place, and that loop carries the cold downward.`],
+ [`Cold air floats upward, so the ice's cold gets wasted at the top.`,`Backwards! Cold air is denser, so it <i>sinks</i>. That's exactly why ice goes on top.`],
+ [`Only the food that is directly touching the ice can ever get cold, nothing else.`,`Touching (conduction) helps, but moving air (convection) carries the cold from the ice to everything else.`]]},
+g06:{q:`Murphy parks a black cooler in full sun. The Sun is 150 million km away, mostly across empty space. How does its energy get to the cooler?`,o:[
+ [`Radiation: sunlight travels through empty space and the dark cooler absorbs it.`,`Yes! Radiation needs no air at all. Dark surfaces absorb more of it, so a black cooler heats up fast.`],
+ [`Air in space carries the Sun's heat to Earth.`,`Space is almost empty, so there's no air to carry anything. Radiation crosses empty space as waves.`],
+ [`The Sun heats up the space in between, and that hot space then heats up Earth and the cooler.`,`Empty space doesn't heat up. The waves pass right through it and only warm things that absorb them.`]]},
+/* ---------- Lab ---------- */
+g07:{q:`Murphy turns on a hot plate under a beaker of water. Which water heats up <b>first</b>, and how?`,o:[
+ [`The water touching the hot glass at the bottom, by direct contact (conduction).`,`Yes! Conduction starts where things touch: hot plate, then glass, then the bottom water.`],
+ [`The water at the top, because heat always rises and the top is closest to the air.`,`Energy enters at the bottom where things touch. Warm water rises <i>later</i>, after conduction has heated it.`],
+ [`All the water at the same instant.`,`Energy has to travel. It gets in at the bottom by conduction, and then currents spread it around.`]]},
+g08:{q:`On the infrared camera, Murphy's nose glows orange. The camera is 1 meter away and isn't touching him. How did the energy reach it?`,o:[
+ [`His nose gives off infrared radiation that crosses the air to the camera.`,`Yes! Every warm object gives off infrared waves. The camera just collects them.`],
+ [`Warm air floated straight across the room from his nose and bumped into the camera lens.`,`Warm air would rise toward the ceiling, not drift straight across. The camera detects radiation, which travels in every direction.`],
+ [`The camera shoots out heat and bounces it off his nose.`,`The camera sends out nothing. It only collects the infrared that objects already give off.`]]},
+g09:{q:`The food coloring rises up the middle of the beaker and sinks down the sides. Why?`,o:[
+ [`Warm water rises and cooler, denser water sinks, making a loop (convection).`,`Yes! The coloring is just riding along on a <b>convection current</b>.`],
+ [`The food coloring is hot and trying to escape upward.`,`The coloring isn't hot; it's a tracer. It moves because the <i>water</i> moves in a loop.`],
+ [`Heat blows the coloring around like wind.`,`Heat doesn't push anything. The water itself moves, because warm water is less dense and rises.`]]},
+g10:{q:`Murphy leaves a metal spoon and a wooden spoon standing in hot water. Minutes later the metal handle is hot and the wooden one isn't. Why?`,o:[
+ [`Metal is a good conductor, so energy zips up the handle. Wood is an insulator.`,`Yes! Metals pass energy particle to particle quickly. Wood does it slowly.`],
+ [`The metal started out hotter than the wood, because metal is always warmer than wood.`,`Both started at room temperature. Metal just moves energy through itself much faster.`],
+ [`Hot water rose up the metal handle.`,`Water can't climb up a solid handle. The metal itself passes energy upward by conduction.`]]},
+g11:{q:`On the infrared camera, the ice cube looks dark and the cocoa looks bright. Is the ice giving off radiation?`,o:[
+ [`Yes. Everything gives off some infrared; the ice just gives off less than the warm cocoa.`,`Yes! The warmer something is, the more infrared it gives off. Colder things still give off some.`],
+ [`No. Ice gives off "cold rays" instead.`,`There are no cold rays. Colder objects simply give off less infrared.`],
+ [`No. Only warm things give off radiation.`,`Everything gives off radiation. Warm things just give off more of it.`]]},
+g12:{q:`In the lava lamp, a blob of wax rises, then later sinks again. What makes it sink?`,o:[
+ [`At the top it cools, becomes denser than the liquid, and sinks (convection).`,`Yes! Warm wax rises, cooled wax sinks. That loop is convection.`],
+ [`It runs out of energy and gets tired.`,`It still has energy. It just lost some thermal energy at the top, which made it denser.`],
+ [`Gravity only starts pulling on the wax after it reaches the very top of the lamp, so then it falls.`,`Gravity pulls the whole time. Warm wax rises because it's less dense; cooled wax is denser, so it sinks.`]]},
+/* ---------- Arctic ---------- */
+g13:{q:`Snow is frozen water, yet an igloo keeps people warm inside. Why?`,o:[
+ [`Snow is full of tiny trapped air pockets, which conduct heat poorly.`,`Yes! Insulators slow conduction. Snow's trapped air makes it a great one.`],
+ [`Snow slowly makes its own heat as it gets packed tightly together into blocks.`,`Snow can't make heat. It just slows down how fast <i>your</i> heat escapes.`],
+ [`Snow blocks the cold from coming in.`,`Cold doesn't flow in. Heat flows <i>out</i>, from warm to cold. Snow slows that flow.`]]},
+g14:{q:`A metal pole and a wooden pole are the same temperature, but the metal feels much colder to Murphy's paw. Why?`,o:[
+ [`Metal conducts heat away from his paw faster, so it feels colder.`,`Yes! It's about how fast heat leaves your paw, not how cold the pole really is.`],
+ [`Metal stores cold better than wood.`,`Nothing stores "cold." Metal just pulls heat out of your paw faster.`],
+ [`Wood makes its own heat, so it feels warmer.`,`Wood makes no heat. It's an insulator, so heat leaves your paw slowly.`]]},
+g15:{q:`Why is the high sleeping platform the warmest spot in the igloo?`,o:[
+ [`Warm air rises and collects up high, while cold air sinks out the low tunnel.`,`Yes! That's <b>convection</b> at work, and it's why igloos have low doors.`],
+ [`Warm air is heavy and sinks, so all of the heat settles down onto the high platform.`,`Backwards! Warm air is less dense, so it rises. Cold air is the one that sinks.`],
+ [`Heat from the lantern only travels upward.`,`Radiation spreads out in every direction. It's the warm <i>air</i> that rises.`]]},
+g16:{q:`Murphy sleeps right by the floor and shivers while Justice, up high, is toasty. Why?`,o:[
+ [`Cold air is denser and sinks to the floor, while warm air rises.`,`Yes! Cold air pools low and warm air floats up, so height matters.`],
+ [`Cold rises up from the ice floor like steam.`,`Cold doesn't rise. Cold air is dense, so it sinks and collects near the floor.`],
+ [`Warm air is heavy, so it sinks to the floor.`,`Warm air is <i>less</i> dense, so it rises toward the ceiling.`]]},
+g17:{q:`Why does a shiny foil blanket help keep Murphy warm?`,o:[
+ [`It reflects the infrared radiation his body gives off back toward him.`,`Yes! Shiny surfaces reflect radiation, so less of his warmth escapes.`],
+ [`Foil makes its own heat when it wraps around you, like a tiny shiny electric blanket.`,`Foil makes no heat. It bounces your own heat back at you.`],
+ [`Foil attracts heat from the air.`,`Heat isn't attracted to foil. Shiny surfaces simply reflect radiation.`]]},
+g18:{q:`In bright sun, a black jacket warms up faster than a white one. Why?`,o:[
+ [`Dark colors absorb more of the Sun's radiation, while white reflects most of it.`,`Yes! Absorbed light turns into thermal energy; reflected light doesn't.`],
+ [`Black attracts heat from the air.`,`Heat isn't attracted to colors. Dark surfaces just absorb more radiation.`],
+ [`Black makes its own heat.`,`No color makes heat. Black absorbs more light energy and turns it into thermal energy.`]]},
+/* ---------- Volcano ---------- */
+g19:{q:`Murphy stands 5 meters from the lava river and his face already feels hot. He isn't touching anything hot. How does the heat reach him?`,o:[
+ [`The glowing lava gives off radiation (infrared and light) that crosses the air.`,`Yes! Radiation crosses the gap in straight lines. No touching needed.`],
+ [`Hot air blows sideways off the lava river and onto his face like a giant hair dryer.`,`Hot air mostly rises. The warmth reaching his face across the gap is radiation.`],
+ [`The ground gets hot and passes the heat to his face.`,`Conduction needs touching, and his face isn't touching the ground. Radiation crosses the gap.`]]},
+g20:{q:`A smoky column rises from the volcano vent. Why does hot gas rise?`,o:[
+ [`Hot gas is less dense than the cooler air around it, so it floats up (convection).`,`Yes! Less dense things rise through more dense things. That's why smoke goes up.`],
+ [`Volcanoes shove it up with pressure, and that's the only reason.`,`Pressure helps at first, but after that the gas keeps rising because it's hotter and less dense than the air around it.`],
+ [`Cold air above pulls it up.`,`Cold never pulls. Cooler, denser air sinks and pushes warm gas upward.`]]},
+g21:{q:`Why does a shiny silver suit protect Murphy from the lava's glow?`,o:[
+ [`Shiny surfaces reflect most radiation instead of absorbing it.`,`Yes! Heat suits are shiny because reflected radiation never turns into thermal energy in the suit.`],
+ [`Silver absorbs the heat very well and keeps it locked inside the suit's shiny layer.`,`It's dark surfaces that absorb. Shiny ones reflect.`],
+ [`Silver is a cold metal that cools the rays.`,`Radiation isn't cooled by metal. Shiny surfaces just bounce it away.`]]},
+g22:{q:`A black lava rock looks cooled off, but it burns Murphy's paws. What's happening?`,o:[
+ [`Heat flows from the hot rock into his paws by direct contact (conduction).`,`Yes! A rock doesn't have to glow to be hot. Touching it lets conduction do the damage.`],
+ [`The rock's dark color is what makes it hot, and the color just hasn't faded yet.`,`Color doesn't make heat. The rock is hot inside, and conduction passes the energy to his paws.`],
+ [`His paws heat up the rock.`,`His paws are cooler than the rock, so energy flows from the rock <i>into</i> his paws.`]]},
+g23:{q:`A paper airplane soars up above the vent. What lifts it?`,o:[
+ [`A rising current of hot air (convection).`,`Yes! Hot air rises, and the plane rides that updraft. Birds and glider pilots use the same trick.`],
+ [`Its wings make heat that pushes it up.`,`Wings make no heat. A column of rising hot air lifts it.`],
+ [`Heat pushes it sideways like a wind.`,`Hot air goes <i>up</i>, not sideways. That upward current is convection.`]]},
+g24:{q:`An egg sits in a metal pan on a hot rock. How does energy get from the rock to the egg?`,o:[
+ [`By conduction: rock to pan to egg, through direct contact.`,`Yes! Each thing touches the next, so energy passes along.`],
+ [`Hot air rising from the rock cooks it from above.`,`Hot air rises away from the rock. The egg cooks because it's in contact with the pan.`],
+ [`Mostly by radiation, with the pan acting like a mirror.`,`Radiation can help, but when things are touching, conduction does most of the work.`]]},
+/* ---------- Space ---------- */
+g25:{q:`On Earth a candle flame is tall and teardrop-shaped. In the floating spaceship it's a small round ball. Why?`,o:[
+ [`Without gravity, hot gas doesn't rise, so no convection current stretches the flame.`,`Yes! On Earth, rising hot gas stretches a flame upward. Without gravity, that doesn't happen.`],
+ [`There's no oxygen anywhere in space, so the flame shrinks down to a tiny ball to save air.`,`The ship has air. The flame changes shape because hot gas can't rise without gravity.`],
+ [`Flames are colder in space.`,`The flame is still hot. What's missing is the rising current.`]]},
+g26:{q:`Murphy floats outside in the shade. Space is very cold. Does he freeze instantly?`,o:[
+ [`No. With almost no air to touch him, heat can only leave by radiation, which is slow.`,`Yes, that's right! Without particles to take his heat, he loses it slowly. Insulated suits make it slower.`],
+ [`Yes. Cold rushes in and freezes him.`,`Cold doesn't rush in. Heat leaves, and with almost no air around him it leaves slowly.`],
+ [`Yes. Space air is colder than ice.`,`Space has almost no air. With so few particles to touch him, he loses heat very slowly.`]]},
+g27:{q:`A computer chip is overheating. Why does a metal heat sink with fins help?`,o:[
+ [`Metal conducts heat away from the chip quickly and spreads it out into the fins.`,`Yes! Good conductors move heat away fast, and the fins give it more surface to leave from.`],
+ [`Metal absorbs cold from the air to cool the chip.`,`No cold flows in. Heat flows <i>out</i> of the chip, through the metal.`],
+ [`Heat "sinks" down into the metal because heat falls downward, and the fins catch it.`,`The name just means it takes heat away. The heat spreads through the metal by conduction.`]]},
+g28:{q:`Why does the spaceship need fans to move air around?`,o:[
+ [`Without gravity, warm air doesn't rise on its own, so natural convection doesn't happen.`,`Yes! On Earth gravity makes warm air rise and cool air sink. In space, you have to push the air yourself.`],
+ [`Space air is too cold to move.`,`Cabin air is normal air. It just doesn't circulate by itself without gravity.`],
+ [`Fans make air hotter so it can rise.`,`Fans just push air around. They don't heat it.`]]},
+g29:{q:`In the vacuum of space, a handrail in sunlight gets very hot. Why do the astronaut gloves have many insulating layers?`,o:[
+ [`Heat can still move by conduction where the glove touches the rail, so layers help.`,`Yes! Even with no air, touching a hot thing lets conduction happen. Layers slow it down.`],
+ [`The layers hold in the cold of space.`,`Layers don't store cold. They slow heat moving in or out.`],
+ [`Heat only travels through air, and space has none, so the layers aren't really needed.`,`Heat also moves by contact (conduction) and by radiation. No air needed.`]]},
+g30:{q:`A solar panel in direct sunlight gets very hot, even though space has almost no air. How does it heat up?`,o:[
+ [`It absorbs the Sun's radiation and turns that light energy into thermal energy.`,`Yes! Radiation needs no air. Absorbed light becomes thermal energy.`],
+ [`Hot air out in space touches the panel and heats it up, the way an oven does.`,`There's almost no air in space. The Sun's radiation does the heating.`],
+ [`The Sun's heat travels through space by conduction.`,`Conduction needs touching. Radiation is what crosses empty space.`]]}
+};
+
+/* page builders */
+const S=(world,title,text,next)=>({type:'story',world,title,text,next});
+const C=(world,title,text,choices)=>({type:'choice',world,title,text,choices});
+const E=(world,badge,text,recap)=>({type:'end',world,badge,text,recap});
+const ch=(label,gate,to)=>({label,gate,to});
+
+const PAGES = {
+p01:{type:'title',title:'Murphy and the Thermal-O-Tron',
+ text:`<p>Murphy the class dog has bumped the dial on Mr. Ward's Thermal-O-Tron, and now he's stuck in five wild worlds where heat moves in three sneaky ways.</p><p>Find all <b>20 endings</b>. Collect all <b>20 badges</b>. To get through each choice, you'll have to answer a heat-transfer question.</p>`},
+p02:S(null,`Tuesday, 10:14 a.m.`,
+ `<p>Mr. Ward steps out for exactly one minute. Murphy, class dog and self-appointed snack inspector, trots past the Thermal-O-Tron, a machine with one enormous dial.</p><p>His tail goes <b>WAG</b>. The dial goes <b>CLUNK</b>. Five glowing doors burst out of the wall.</p>`,'p03'),
+p03:{type:'crews',title:'The whole class is coming too',
+ text:`<p>Murphy isn't going alone. Everyone piles through the doors, split into seven crews. Look for your name. Every crew has a job somewhere in this adventure.</p>`},
+p04:{type:'hub',title:'Pick a door',
+ text:`<p>Each world has 4 endings and 4 badges. Some endings are heroic. Some are epic fails. All of them are worth finding.</p>`},
+
+/* ===== World 1: Campfire ===== */
+p05:S('camp','Door 1: Campfire Night',
+ `<p>Door 1 opens onto a forest at sunset. The Campfire Crew (Arthur, Alex, Thomas, Nicolas, Edward, and Luca) has a fire crackling. The Snack Crew (Kailash, George, Douglass, Ellison, Wallace, and Ethan) is unpacking marshmallows, hot dogs, and one suspiciously large cooler.</p><p>Murphy's nose is working overtime.</p>`,'p06'),
+p06:C('camp','Two jobs, one stomach',
+ `<p>Arthur and Alex are tending the fire while Thomas, Nicolas, Edward, and Luca stack logs. Murphy has two important jobs: dinner and cooler duty. Which one first?</p>`,
+ [ch('Roast a marshmallow on the metal skewer','g01','p07'), ch('Help the Snack Crew pack the cooler','g02','p08')]),
+p07:C('camp','The Hot Handle',
+ `<p>The skewer's handle is now Hot Dog Hot. Murphy yelps (a tiny, dignified yelp). Ethan holds up two ideas.</p>`,
+ [ch('Switch to a wooden stick and sit beside the fire','g03','p09'), ch('Hold the marshmallow right above the flames','g04','p10')]),
+p08:C('camp','Cooler Command',
+ `<p>The cooler is open: ice, lemonade, hot dogs. George, Ellison, and Wallace wait with tongs. Kailash asks Murphy to make the call.</p>`,
+ [ch('Pile the ice on top of the food','g05','p11'), ch('Park the black cooler in the sunniest spot','g06','p12')]),
+p09:E('camp',{id:'e01',name:'Marshmallow Master',emoji:'🍡',kind:'hero'},
+ `<p>Murphy settles back with a long wooden stick. Wood is an insulator, so the handle stays cool, and the fire's radiation toasts the marshmallow golden. Arthur whoops. Alex snaps a photo. Luca asks for seconds, and Thomas calls it the s'more of the century.</p>`,
+ `<b>Why it worked:</b> wood slows conduction, and sitting beside the fire lets radiation do the toasting.`),
+p10:E('camp',{id:'e02',name:'Charcoal Fluffball',emoji:'🔥',kind:'fail'},
+ `<p>Murphy holds the marshmallow right over the flames. The rising hot air does its job and <b>FWOOMP</b>: tiny torch. Nicolas fans it out with a paper plate. Edward writes "RIP Marshmallow" on a napkin. Kailash hands over a fresh one. "Beside the fire this time," he whispers.</p>`,
+ `<b>Why it happened:</b> the hottest air rises straight above a fire (convection), so the best toasting spot is beside it.`),
+p11:E('camp',{id:'e03',name:'Cool Cooler Captain',emoji:'🧊',kind:'hero'},
+ `<p>Ice on top, drinks below, lid shut. The cold air sinks and the cooler stays chilly for hours. Douglass salutes. George crowns Murphy with a napkin crown. The lemonade is perfect.</p>`,
+ `<b>Why it worked:</b> cold air is dense and sinks, so ice on top cools everything below it.`),
+p12:E('camp',{id:'e04',name:'Cooked Cooler',emoji:'☀️',kind:'fail'},
+ `<p>The black cooler soaks up sunshine all afternoon. By dinner the ice is a puddle and the lemonade is warm as soup. Ellison pours it out. Wallace sniffs it. "Soup," he says. Murphy hides behind a tree.</p>`,
+ `<b>Why it happened:</b> dark surfaces absorb more of the Sun's radiation. Light colors and shade keep coolers cold.`),
+
+/* ===== World 2: Lab ===== */
+p13:S('lab',"Door 2: Mr. Ward's Lab",
+ `<p>Door 2 opens into a lab full of goggles. The Lab Crew (Michael, Raza, Aaran, Samuel, James, and Giorgio) is setting up stations. The Weather Team (Dylan, Jasper, Elliott, Theodore, Taran, and Pierce) is arguing about a thermometer.</p><p>Murphy's goggles don't fit over his ears.</p>`,'p14'),
+p14:C('lab','Two stations',
+ `<p>Raza and Aaran wait at the hot plate. James waves from the infrared camera. Murphy can only visit one first. Which one?</p>`,
+ [ch('The hot plate with a beaker of water and food coloring','g07','p15'), ch('The infrared camera','g08','p16')]),
+p15:C('lab','Whirlpool or Spoon?',
+ `<p>The water is warming. A drop of food coloring parachutes to the bottom. Samuel hands Murphy a metal spoon and points at the beaker.</p>`,
+ [ch('Watch the food coloring','g09','p17'), ch('Stir with the metal spoon, then leave it standing in the hot beaker','g10','p18')]),
+p16:C('lab','Camera Time',
+ `<p>The camera shows a mug of ice water as dark blue and a mug of cocoa as bright yellow. Giorgio stares at the screen. Over on the shelf, a lava lamp glows, and Murphy has to choose.</p>`,
+ [ch('Scan the ice cube and the cocoa side by side','g11','p19'), ch("Check out the lava lamp on the shelf",'g12','p20')]),
+p17:E('lab',{id:'e05',name:'Swirl Wizard',emoji:'🌀',kind:'hero'},
+ `<p>Murphy watches the coloring rise up the middle and sink down the sides, round and round. "A convection current!" yells James. Aaran says it's the best thing he's ever seen. Michael films it. Raza labels the beaker "Murphy's Whirlpool."</p>`,
+ `<b>Why it worked:</b> warm water rises, cool water sinks, and the loop moves thermal energy through the whole beaker.`),
+p18:E('lab',{id:'e06',name:'Hot Spoon Hand',emoji:'🥄',kind:'fail'},
+ `<p>Murphy grabs the metal spoon's handle. <b>YIP!</b> Samuel swaps it for a wooden spoon. "Metal is a conductor," he sighs. Murphy takes notes with a slightly sore paw.</p>`,
+ `<b>Why it happened:</b> metal conducts energy up the handle quickly. Wood and plastic spoons slow it down.`),
+p19:E('lab',{id:'e07',name:'Ice Detective',emoji:'🕵️',kind:'hero'},
+ `<p>The camera shows the ice still glowing a faint blue. It's giving off infrared, just less. "Case closed," says Theodore. Dylan and Jasper cheer. Elliott gives Murphy a tiny detective hat.</p>`,
+ `<b>Why it worked:</b> everything gives off radiation. Colder objects just give off less. There are no "cold rays."`),
+p20:E('lab',{id:'e08',name:'Lava Lamp Legend',emoji:'🫧',kind:'hero'},
+ `<p>Murphy watches the wax rise, cool, and sink, again and again. "Convection in a lamp," says Taran. Pierce tapes a sign above the shelf: "Murphy's Lava Lamp Lab."</p>`,
+ `<b>Why it worked:</b> warm wax is less dense and rises. At the top it cools, becomes denser, and sinks.`),
+
+/* ===== World 3: Arctic ===== */
+p21:S('arctic','Door 3: The Arctic',
+ `<p>Door 3 opens into a blizzard. Murphy's fur puffs up like a dandelion. The Arctic Crew (Maxwell, Frederick, Justice, Andrew, Nicholas, and Martin) waves from a research station. The Weather Team is already here, somehow, still arguing about that thermometer.</p>`,'p22'),
+p22:C('arctic','Shelter or Flag?',
+ `<p>It's far below freezing. Dylan, Jasper, Elliott, Theodore, Taran, and Pierce are checking the wind. Murphy needs to get warm and plant the class flag. He can start with one.</p>`,
+ [ch('Help build an igloo','g13','p23'), ch('Grab the metal flagpole to plant the flag','g14','p24')]),
+p23:C('arctic','Inside the Igloo',
+ `<p>The igloo is built. Justice lights a small lantern. Maxwell asks Murphy where to put the sleeping spot.</p>`,
+ [ch('Up on the high platform, with the tunnel down low','g15','p25'), ch('Down on the floor, right beside the tunnel','g16','p26')]),
+p24:C('arctic','Trek Time',
+ `<p>Murphy's paw is fine (barely). Frederick and Martin are lacing up for a long trek across the sunny ice field. Murphy picks his gear.</p>`,
+ [ch('Wrap up in a shiny foil emergency blanket','g17','p27'), ch('Put on the white snow jacket and wait in the sun','g18','p28')]),
+p25:E('arctic',{id:'e09',name:'Igloo Architect',emoji:'🏔️',kind:'hero'},
+ `<p>Murphy puts the sleeping platform high and keeps the tunnel low. Warm air gathers at the top while cold air drains out the door. "Smart design," says Maxwell. Andrew rings a tiny bell for Murphy. Nicholas tucks a blanket around him.</p>`,
+ `<b>Why it worked:</b> warm air rises and cold air sinks, so warmth collects up high while cold drains out low.`),
+p26:E('arctic',{id:'e10',name:'Frosty Floor',emoji:'🥶',kind:'fail'},
+ `<p>By midnight Murphy is a shivering fluffball. Justice drapes a parka over him. Martin carries him up to the high platform, where it's toasty. "Cold air sinks," Martin whispers.</p>`,
+ `<b>Why it happened:</b> cold air is denser and pools on the floor. The higher you sleep, the warmer you are.`),
+p27:E('arctic',{id:'e11',name:'Foil Burrito',emoji:'🌯',kind:'hero'},
+ `<p>Murphy wraps up in the shiny foil blanket and becomes a Foil Burrito. It bounces his own warmth back to him. Frederick snaps a photo. Nicholas offers him a snack. "Burrito Murphy," announces Frederick, "reporting for duty."</p>`,
+ `<b>Why it worked:</b> shiny foil reflects the infrared radiation your body gives off, so less heat escapes.`),
+p28:E('arctic',{id:'e12',name:'Snowdog Camouflage',emoji:'🐾',kind:'fail'},
+ `<p>Murphy puts on the white jacket and waits in the sun. He blends into the snow so perfectly that nobody can find him. Andrew searches left. Martin searches right. Ten minutes later, a single bark rings out from a snowbank.</p>`,
+ `<b>Why it happened:</b> white reflects most of the Sun's radiation. A dark jacket would have absorbed more and warmed him up.`),
+
+/* ===== World 4: Volcano ===== */
+p29:S('volcano','Door 4: The Volcano',
+ `<p>Door 4 opens onto a rumbling, sizzling slope. The Volcano Crew (Leo, Ayan, Charles, Anthony, Harry, and Cole) wears helmets and heat suits. Michael and Giorgio from the Lab Crew are pointing laser thermometers at everything.</p><p>The ground is warm through Murphy's paws.</p>`,'p30'),
+p30:C('volcano','Lava or Vent?',
+ `<p>Two things look interesting: a glowing lava river and a smoking vent. Murphy chooses.</p>`,
+ [ch('Walk toward the lava river for a closer look','g19','p31'), ch('Race up the hill to the smoking vent','g20','p32')]),
+p31:C('volcano','Close to the Glow',
+ `<p>The lava river glows orange. Charles holds out a shiny silver heat suit. Anthony points to a nearby black rock that looks like it has cooled.</p>`,
+ [ch('Put on the shiny silver heat suit','g21','p33'), ch('Hop onto the black rock, which looks cool','g22','p34')]),
+p32:C('volcano','Up at the Vent',
+ `<p>A plume of smoke climbs the sky. Harry has a paper airplane. Cole has a metal pan and an egg. Don't ask why.</p>`,
+ [ch('Launch the paper airplane over the vent','g23','p35'), ch('Cook the egg in the pan on a hot rock','g24','p36')]),
+p33:E('volcano',{id:'e13',name:'Silver Streak',emoji:'🪩',kind:'hero'},
+ `<p>Murphy strolls up in the silver suit, and the lava's glow just bounces off. "Looking sharp," says Leo. Ayan takes photos from a safe distance. Murphy poses like a shiny baked potato.</p>`,
+ `<b>Why it worked:</b> shiny surfaces reflect radiation instead of absorbing it.`),
+p34:E('volcano',{id:'e14',name:'Hot Paw Hop',emoji:'🦶',kind:'fail'},
+ `<p>Murphy hops onto the black rock. <b>HOT HOT HOT.</b> He performs a perfect paw dance across the hillside. Anthony catches him. Charles dips his paws in a bucket of water. "It looked cool," Murphy sulks.</p>`,
+ `<b>Why it happened:</b> a rock can look cooled off and still be hot. Heat flows into your paws by conduction when you touch it.`),
+p35:E('volcano',{id:'e15',name:'Thermal Rider',emoji:'🪁',kind:'hero'},
+ `<p>Harry launches the plane. It rides the rising hot air higher and higher. "A thermal!" shouts Leo. Murphy chases it along the ridge, tail up like a flag. Harry awards him a pilot's sticker.</p>`,
+ `<b>Why it worked:</b> hot air rises in a current (convection), and light things can ride it upward.`),
+p36:E('volcano',{id:'e16',name:'Ash Omelet',emoji:'🍳',kind:'fail'},
+ `<p>The egg sizzles within seconds. Cole slides it onto a plate. Ayan sniffs it. "Tastes like volcanic ash," says Anthony. Everyone agrees it was a great experiment and nobody eats it.</p>`,
+ `<b>Why it happened:</b> conduction cooks the egg fast through the hot pan. The "seasoning" was just ash blowing in.`),
+
+/* ===== World 5: Space ===== */
+p37:S('space','Door 5: Outer Space',
+ `<p>Door 5 opens onto a spaceship, and Murphy floats up off the floor. The Space Crew (Lucas, Jairam, Marcus, Alfred, Zane, and Graham) waves from the cockpit. Douglass and Ethan from the Snack Crew are chasing a bag of chips across the cabin.</p>`,'p38'),
+p38:C('space','Floating Around',
+ `<p>Everything in the ship is floating, including Murphy's ears. Two things are waiting for him: an astronaut candle experiment and an airlock marked OUTSIDE.</p>`,
+ [ch('Light the candle for science','g25','p39'), ch('Float outside in the shade','g26','p40')]),
+p39:C('space','Alarm!',
+ `<p>The tiny round flame flickers out. Then an alarm blares: the ship's computer is overheating! Alfred holds up a metal heat sink. Lucas points at the fan switch.</p>`,
+ [ch('Attach the metal heat sink','g27','p41'), ch('Switch the cabin fan to maximum','g28','p42')]),
+p40:C('space','The Big Sun',
+ `<p>Murphy floats out of the airlock. The Sun blazes on one side of the station. Zane hands him gloves and points at a handrail. Graham points at a solar panel.</p>`,
+ [ch('Put on the thick layered gloves and grab the Sun-baked handrail','g29','p43'), ch('Put all four paws on the Sun-baked solar panel to warm up','g30','p44')]),
+p41:E('space',{id:'e17',name:'Heat Sink Hero',emoji:'🛠️',kind:'hero'},
+ `<p>The metal heat sink pulls heat off the chip and spreads it into the fins. The alarm goes quiet. "Nice fix," says Jairam. Marcus gives Murphy a gold medal, which floats away. Murphy lets it go.</p>`,
+ `<b>Why it worked:</b> metal is a good conductor. It moves heat away from the chip and out through its fins.`),
+p42:E('space',{id:'e18',name:'Fur Tornado',emoji:'🌪️',kind:'fail'},
+ `<p>The fan roars to life. Murphy's fur becomes a fluffy tornado. Alfred catches a floating sock. Lucas turns the fan down. "Okay, medium," he says.</p>`,
+ `<b>Why it happened:</b> without gravity, hot air doesn't rise on its own, so a fan is the only way to move it. Just not on max.`),
+p43:E('space',{id:'e19',name:'Space Dog Supreme',emoji:'🚀',kind:'hero'},
+ `<p>The layered gloves keep the hot handrail from baking Murphy's paws. Zane cheers. Graham gives a thumbs up. Murphy waves one giant glove at Earth.</p>`,
+ `<b>Why it worked:</b> in a vacuum, heat still moves by touch and by radiation. Insulating layers slow conduction.`),
+p44:E('space',{id:'e20',name:'Toasty Toes',emoji:'🍞',kind:'fail'},
+ `<p>Murphy plants all four paws on the solar panel. <b>OW.</b> It's hot enough to make toast. Marcus pulls him off. Jairam checks his paws. Alfred slides a slice of bread across the panel, just to see.</p>`,
+ `<b>Why it happened:</b> the panel absorbs the Sun's radiation and turns it into thermal energy, even with no air at all.`),
+
+p45:{type:'secret',title:'Hall of Fame',
+ text:`<p>You found all 20 endings. Murphy wags so hard the Thermal-O-Tron dial spins all the way around.</p><p>Every crew takes a bow. You're officially a <b>Heat Transfer Hero</b>.</p>`}
+};
+
+/* ========================= STATE ========================= */
+const KEY='murphy-thermal-badges-v1';
+let mem=[];
+function loadBadges(){ try{ const v=JSON.parse(localStorage.getItem(KEY)||'[]'); return new Set(Array.isArray(v)?v:[]); }catch(e){ return new Set(mem); } }
+function saveBadges(){ const arr=[...badges]; mem=arr; try{ localStorage.setItem(KEY,JSON.stringify(arr)); }catch(e){} }
+let badges=loadBadges();
+let cur='p01', wallFrom='p01';
+
+const ENDINGS = Object.entries(PAGES).filter(([,p])=>p.type==='end').map(([id,p])=>({page:id,world:p.world,...p.badge}));
+const mainCount=()=>ENDINGS.filter(e=>badges.has(e.id)).length;
+
+/* ========================= HELPERS ========================= */
+const app=document.getElementById('app');
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const num=id=>id.slice(1);
+
+function theme(world){
+  const w=world?W[world]:null;
+  document.documentElement.style.setProperty('--accent',w?w.color:'#1971c2');
+  document.documentElement.style.setProperty('--tint',w?w.tint:'#eaf5fb');
+}
+function updateBar(){
+  const n=mainCount();
+  document.getElementById('count').textContent=n+'/20';
+  document.getElementById('cover').style.width=(100-n/20*100)+'%';
+  document.getElementById('meter').setAttribute('aria-label',n+' of 20 badges collected');
+}
+function art(id,world){
+  const w=world?W[world]:null;
+  const emoji=w?w.emoji:(id==='p01'||id==='p02'?'🐶':'🚪');
+  return `<div class="art"><img src="img/${id}.jpg" alt="" data-id="${id}"><div class="ph" hidden><span class="big">${emoji}</span><small>Picture goes here: img/${id}.jpg</small></div></div>`;
+}
+function wireImages(){
+  app.querySelectorAll('.art img').forEach(img=>{
+    const fail=()=>{
+      if(!img.dataset.tried){ img.dataset.tried='1'; img.src='img/'+img.dataset.id+'.png'; }
+      else { img.hidden=true; img.nextElementSibling.hidden=false; }
+    };
+    img.addEventListener('error',fail);
+    if(img.complete && img.naturalWidth===0) fail();
+  });
+}
+function frame(id,world,inner,cls=''){
+  return `<article class="page ${cls}">${art(id,world)}<div class="body"><p class="pgno">Page ${parseInt(num(id),10)}</p>${inner}</div></article>`;
+}
+function finish(){ wireImages(); window.scrollTo({top:0}); const h=app.querySelector('h1,h2'); if(h){h.setAttribute('tabindex','-1');h.focus({preventScroll:true});} updateBar(); }
+
+/* ========================= RENDER ========================= */
+function show(id){
+  cur=id; const p=PAGES[id]; theme(p.world||null);
+  if(p.type==='title') return renderTitle(id,p);
+  if(p.type==='story') return renderStory(id,p);
+  if(p.type==='choice') return renderChoice(id,p);
+  if(p.type==='end') return renderEnd(id,p);
+  if(p.type==='crews') return renderCrews(id,p);
+  if(p.type==='hub') return renderHub(id,p);
+  if(p.type==='secret') return renderSecret(id,p);
+}
+function renderTitle(id,p){
+  const has=mainCount()>0;
+  app.innerHTML=frame(id,null,`<h1>${p.title}</h1><div class="text">${p.text}</div>
+   <div class="actions"><div class="row"><button class="btn primary" id="go">Start the adventure</button>${has?'<button class="btn" id="skip">Jump to the doors</button>':''}</div></div>`);
+  document.getElementById('go').onclick=()=>show('p02');
+  if(has) document.getElementById('skip').onclick=()=>show('p04');
+  finish();
+}
+function renderStory(id,p){
+  app.innerHTML=frame(id,p.world,`<h2>${p.title}</h2><div class="text">${p.text}</div><div class="actions"><div class="row"><button class="btn primary" id="next">Keep going</button></div></div>`);
+  document.getElementById('next').onclick=()=>show(p.next);
+  finish();
+}
+function renderChoice(id,p){
+  app.innerHTML=frame(id,p.world,`<h2>${p.title}</h2><div class="text">${p.text}</div>
+   <div class="actions" id="actions">${p.choices.map((c,i)=>`<button class="choice" data-i="${i}"><span class="chip">${'AB'[i]}</span><span>${c.label}</span></button>`).join('')}</div>`);
+  app.querySelectorAll('.choice').forEach(b=>b.onclick=()=>openGate(p,+b.dataset.i));
+  finish();
+}
+function openGate(p,i){
+  const c=p.choices[i], g=GATES[c.gate];
+  const opts=shuffle(g.o.map((o,idx)=>({t:o[0],why:o[1],ok:idx===0})));
+  const box=document.getElementById('actions');
+  box.innerHTML=`<div class="gate">
+    <p class="picked">You chose: <b>${c.label}</b></p>
+    <h3 class="q">${g.q}</h3>
+    <div class="opts">${opts.map((o,k)=>`<button class="opt" data-k="${k}"><span class="chip">${'ABC'[k]}</span><span>${o.t}</span></button>`).join('')}</div>
+    <div class="fb" id="fb" aria-live="polite"></div>
+    <div class="gate-actions"><button class="btn ghost" id="back">Pick a different path</button></div></div>`;
+  const fb=box.querySelector('#fb');
+  box.querySelectorAll('.opt').forEach(btn=>btn.onclick=()=>{
+    const o=opts[+btn.dataset.k];
+    if(o.ok){
+      box.querySelectorAll('.opt').forEach(b=>b.disabled=true);
+      btn.classList.add('right');
+      fb.insertAdjacentHTML('beforeend',`<div class="why good">✓ ${o.why}</div>`);
+      const ga=box.querySelector('.gate-actions');
+      ga.innerHTML=`<button class="btn primary" id="cont">Continue the story</button>`;
+      const cont=ga.querySelector('#cont'); cont.onclick=()=>show(c.to); cont.focus();
+    } else {
+      btn.disabled=true; btn.classList.add('wrong','shake');
+      fb.insertAdjacentHTML('beforeend',`<div class="why bad">✗ Not quite. ${o.why} Try another answer.</div>`);
+    }
+  });
+  box.querySelector('#back').onclick=()=>renderChoice(cur,p);
+  box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function renderEnd(id,p){
+  const b=p.badge, isNew=!badges.has(b.id);
+  if(isNew){ badges.add(b.id); saveBadges(); }
+  const inW=ENDINGS.filter(e=>e.world===p.world), got=inW.filter(e=>badges.has(e.id)).length;
+  const all=mainCount()===20;
+  app.innerHTML=frame(id,p.world,`<div class="ending">
+    <div class="stamp" aria-hidden="true">${b.emoji}</div><br>
+    <span class="kind ${b.kind}">${b.kind==='hero'?'Hero ending':'Epic fail ending'}</span>
+    <h2>${b.name}</h2>
+    <p class="newtag">${isNew?'New badge earned!':'You already had this badge.'} ${W[p.world].name}: ${got} of 4 found.</p>
+    <div class="text">${p.text}</div>
+    <div class="recap">${p.recap}</div>
+    <div class="actions"><div class="row">
+      <button class="btn primary" id="doors">Back to the doors</button>
+      <button class="btn" id="again">Try ${W[p.world].name} again</button>
+      <button class="btn" id="wall">See my badges</button>
+      ${all?'<button class="btn" id="hof">Open the Hall of Fame</button>':''}
+    </div></div></div>`,'ending');
+  document.getElementById('doors').onclick=()=>show('p04');
+  document.getElementById('again').onclick=()=>show(W[p.world].start);
+  document.getElementById('wall').onclick=()=>showWall();
+  if(all) document.getElementById('hof').onclick=()=>show('p45');
+  finish();
+}
+function renderCrews(id,p){
+  app.innerHTML=frame(id,null,`<h2>${p.title}</h2><div class="text">${p.text}</div>
+   <div class="crews">${CREWS.map(c=>`<div class="crew"><h3>${c.emoji} ${c.name}</h3><ul>${c.names.map(n=>`<li>${n}</li>`).join('')}</ul></div>`).join('')}</div>
+   <div class="actions"><div class="row"><button class="btn primary" id="next">Open the doors</button></div></div>`);
+  document.getElementById('next').onclick=()=>show('p04');
+  finish();
+}
+function renderHub(id,p){
+  const all=mainCount()===20;
+  app.innerHTML=frame(id,null,`<h2>${p.title}</h2><div class="text">${p.text}</div>
+   <div class="doors">${WORLDS.map(w=>{const got=ENDINGS.filter(e=>e.world===w.id&&badges.has(e.id)).length;
+     return `<button class="door" style="--c:${w.color}" data-s="${w.start}"><span class="dn">Door ${w.n}</span><span class="de">${w.emoji}</span><span class="dt">${w.name}</span><span class="dc">${got} of 4 badges</span></button>`;}).join('')}
+    ${all?`<button class="door gold" data-s="p45"><span class="dn">Secret door</span><span class="de">🏆</span><span class="dt">Hall of Fame</span><span class="dc">You found everything</span></button>`:''}</div>`);
+  app.querySelectorAll('.door').forEach(d=>d.onclick=()=>show(d.dataset.s));
+  finish();
+}
+function renderSecret(id,p){
+  if(!badges.has('bonus')){ badges.add('bonus'); saveBadges(); }
+  app.innerHTML=frame(id,null,`<div class="ending"><div class="stamp" aria-hidden="true">🏆</div><br><span class="kind hero">Secret badge earned</span><h2>Heat Transfer Hero</h2></div>
+   <div class="text">${p.text}</div>
+   <div class="crews">${CREWS.map(c=>`<div class="crew"><h3>${c.emoji} ${c.name}</h3><ul>${c.names.map(n=>`<li>${n}</li>`).join('')}</ul></div>`).join('')}</div>
+   <div class="actions"><div class="row"><button class="btn primary" id="doors">Back to the doors</button><button class="btn" id="wall">See my badges</button></div></div>`,'ending');
+  document.getElementById('doors').onclick=()=>show('p04');
+  document.getElementById('wall').onclick=()=>showWall();
+  finish();
+}
+function showWall(){
+  if(cur!=='wall') wallFrom=cur;
+  cur='wall'; theme(null);
+  const n=mainCount(), all=n===20;
+  app.innerHTML=`<article class="page"><div class="body"><h2>Badge wall: ${n} of 20</h2>
+   <div class="text"><p>${all?'You found every ending!':'Locked badges show where an ending is still hiding.'}</p></div>
+   ${WORLDS.map(w=>`<div class="wgroup"><h3>${w.emoji} ${w.name}</h3><div class="tiles">${ENDINGS.filter(e=>e.world===w.id).map(e=>badges.has(e.id)
+     ?`<div class="tile ${e.kind}"><span class="te">${e.emoji}</span>${e.name}<small>${e.kind==='hero'?'Hero ending':'Epic fail ending'}</small></div>`
+     :`<div class="tile locked"><span class="te">🔒</span>Hidden ending</div>`).join('')}</div></div>`).join('')}
+   ${all?`<div class="wgroup"><h3>🏆 Secret badge</h3><div class="tiles"><div class="tile ${badges.has('bonus')?'hero':'locked'}"><span class="te">${badges.has('bonus')?'🏆':'🔒'}</span>${badges.has('bonus')?'Heat Transfer Hero':'Open the Hall of Fame to claim it'}</div></div></div>`:''}
+   <div class="actions"><div class="row"><button class="btn primary" id="close">Back to the story</button>${all?'<button class="btn" id="hof">Hall of Fame</button>':''}<button class="btn ghost" id="reset">Erase my badges</button></div></div></div></article>`;
+  document.getElementById('close').onclick=()=>show(wallFrom==='wall'?'p04':wallFrom);
+  if(all) document.getElementById('hof').onclick=()=>show('p45');
+  document.getElementById('reset').onclick=()=>{ if(confirm('Erase all your badges on this device?')){ badges=new Set(); saveBadges(); showWall(); } };
+  finish();
+}
+
+document.getElementById('btnDoors').onclick=()=>show('p04');
+document.getElementById('btnWall').onclick=()=>showWall();
+show('p01');
+</script>
+</body>
+</html>
